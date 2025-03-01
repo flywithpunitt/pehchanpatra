@@ -5,12 +5,12 @@ const Projects = () => {
   const [activeProject, setActiveProject] = useState(0);
   
   const projects = [
-    {
+    {    
       id: 'upi-banking-system',
       title: 'UPI Banking System',
       description: 'A comprehensive banking application with modern transaction capabilities and multi-account support, leveraging Plaid and Docile APIs for enhanced security through multi-factor authentication.',
       technologies: ['React.js', 'TypeScript', 'Clark', 'MongoDB'],
-      image: '/src/assets/project1.png',
+      image: "/src/assets/project1.png",
       codeSnippet: `// Transaction processing middleware
 const processTransaction = async (req, res, next) => {
   try {
@@ -68,7 +68,7 @@ const processTransaction = async (req, res, next) => {
       title: 'Imaginify AI Image Editor',
       description: 'Developed an online image editor using Cloudinary AI with features like background removal, object removal, generative fill, and recoloring capabilities with an intuitive interface.',
       technologies: ['React.js', 'Clark', 'MongoDB', 'Stripe', 'Cloudinary AI'],
-      image: '/src/assets/project1.png',
+      image: "/src/assets/project1.png",
       codeSnippet: `// Image transformation component
 import { useState } from 'react';
 import { CloudinaryUploader } from '../components';
