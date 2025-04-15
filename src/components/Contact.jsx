@@ -1,752 +1,288 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Linkedin, Github, Send, AlertCircle, CheckCircle, Terminal, Command, Copy, Cpu, Wifi, HardDrive, Code, Zap } from 'lucide-react';
+'use client';
+
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 const Contact = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [commandOutput, setCommandOutput] = useState('');
-  const [commandHistory, setCommandHistory] = useState([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
-  const [typingAnimation, setTypingAnimation] = useState('');
-  const [currentCommandIndex, setCurrentCommandIndex] = useState(0);
-  const [cursor, setCursor] = useState(true);
-  const [copied, setCopied] = useState(false);
-  const [showEasterEgg, setShowEasterEgg] = useState(false);
-  const [konamiProgress, setKonamiProgress] = useState(0);
-  const terminalRef = useRef(null);
-  
-  // Konami code sequence
-  const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-  
-  const commands = [
-    { command: 'whoami', delay: 1000 },
-    { command: 'ls -la /contact', delay: 1500 },
-    { command: 'cat contact_info.txt', delay: 1200 },
-  ];
-  
-  // Cursor blinking
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCursor(prev => !prev);
-    }, 530);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  // Konami code easter egg
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Check if the pressed key matches the next key in the Konami sequence
-      if (e.key === konamiCode[konamiProgress]) {
-        const nextProgress = konamiProgress + 1;
-        setKonamiProgress(nextProgress);
-        
-        // If the sequence is complete, trigger the easter egg
-        if (nextProgress === konamiCode.length) {
-          setShowEasterEgg(true);
-          setKonamiProgress(0);
-          
-          // Add special command to terminal
-          setCommandOutput(prev => 
-            prev + "visitor@punit-portfolio:~$ sudo unlock_debug_mode\n" +
-            "🎮 DEBUG MODE ACTIVATED - Welcome hacker!\n" +
-            "All systems accessible. Matrix mode engaged.\n\n"
-          );
-          
-          // Scroll terminal to bottom
-          if (terminalRef.current) {
-            setTimeout(() => {
-              terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-            }, 100);
-          }
-          
-          // Reset easter egg after 15 seconds
-          setTimeout(() => {
-            setShowEasterEgg(false);
-          }, 15000);
-        }
-      } else {
-        // Reset progress if wrong key
-        setKonamiProgress(0);
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [konamiProgress]);
-  
-  // Command execution animation
-  useEffect(() => {
-    if (currentCommandIndex < commands.length) {
-      setTypingAnimation('');
-      
-      // Type the command character by character
-      const command = commands[currentCommandIndex].command;
-      let charIndex = 0;
-      
-      const typingInterval = setInterval(() => {
-        if (charIndex < command.length) {
-          setTypingAnimation(prev => prev + command[charIndex]);
-          charIndex++;
-        } else {
-          clearInterval(typingInterval);
-          
-          // After typing finishes, add command to history and show output
-          setTimeout(() => {
-            setCommandHistory(prev => [...prev, command]);
-            setTypingAnimation('');
-            
-            // Generate command output based on the command
-            generateCommandOutput(command);
-            
-            // Move to next command after delay
-            setTimeout(() => {
-              setCurrentCommandIndex(currentCommandIndex + 1);
-            }, commands[currentCommandIndex].delay);
-          }, 500);
-        }
-      }, 100);
-      
-      return () => clearInterval(typingInterval);
-    }
-  }, [currentCommandIndex]);
-  
-  const generateCommandOutput = (command) => {
-    switch (command) {
-      case 'whoami':
-        setCommandOutput(prev => 
-          prev + "visitor@punit-portfolio:~$ whoami\n" +
-          "visitor\n\n"
-        );
-        break;
-      case 'ls -la /contact':
-        setCommandOutput(prev => 
-          prev + "visitor@punit-portfolio:~$ ls -la /contact\n" +
-          "total 4\n" +
-          "drwxr-xr-x  2 punit developers  4096 Mar 1 2025 .\n" +
-          "drwxr-xr-x 14 punit developers  4096 Mar 1 2025 ..\n" +
-          "-rw-r--r--  1 punit developers   256 Mar 1 2025 contact_info.txt\n" +
-          "-rw-r--r--  1 punit developers   417 Mar 1 2025 .message_form\n" +
-          "-rw-r--r--  1 punit developers   128 Mar 1 2025 README.md\n\n"
-        );
-        break;
-      case 'cat contact_info.txt':
-        setCommandOutput(prev => 
-          prev + "visitor@punit-portfolio:~$ cat contact_info.txt\n" +
-          "// Contact Information\n" +
-          "{\n" +
-          "  name: \"Punit Kumar\",\n" +
-          "  email: \"punitkumar182@gmail.com\",\n" +
-          "  linkedin: \"https://linkedin.com/in/punitkumar182\",\n" +
-          "  github: \"https://github.com/punitkr\",\n" +
-          "  availability: \"Open to new opportunities\"\n" +
-          "}\n\n" +
-          "To send a message, please use the form below or contact directly via email.\n\n"
-        );
-        break;
-      default:
-        setCommandOutput(prev => 
-          prev + `visitor@punit-portfolio:~$ ${command}\n` +
-          `Command not found: ${command}\n\n`
-        );
-    }
-  };
-  
-  const handleCopyEmail = () => {
-    navigator.clipboard.writeText('punitkumar182@gmail.com');
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitStatus('loading');
+    setIsSubmitting(true);
     
     // Simulate form submission
-    setTimeout(() => {
-      // Form validation would go here in a real implementation
-      if (name && email && message) {
-        // Success simulation
-        setCommandOutput(prev => 
-          prev + `visitor@punit-portfolio:~$ send_message "${name}" "${email}"\n` +
-          "Message successfully sent! Expect a response soon.\n" +
-          "Exit code: 0\n\n"
-        );
-        setSubmitStatus('success');
-        setName('');
-        setEmail('');
-        setMessage('');
-      } else {
-        // Error simulation
-        setCommandOutput(prev => 
-          prev + `visitor@punit-portfolio:~$ send_message "${name}" "${email}"\n` +
-          "Error: Missing required fields\n" +
-          "Exit code: 1\n\n"
-        );
-        setSubmitStatus('error');
-      }
-      
-      // Reset status after 3 seconds
-      setTimeout(() => {
-        setSubmitStatus(null);
-      }, 3000);
-    }, 1500);
-  };
-  
-  const runCustomCommand = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const command = e.target.value.trim();
-      if (command) {
-        generateCommandOutput(command);
-        e.target.value = '';
-      }
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setSubmitStatus('success');
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+      });
+    } catch (error) {
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setSubmitStatus(null), 3000);
     }
+  };
+
+  const socialLinks = [
+    {
+      name: 'GitHub',
+      url: 'https://github.com/yourusername',
+      icon: (
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+        </svg>
+      )
+    },
+    {
+      name: 'LinkedIn',
+      url: 'https://linkedin.com/in/yourusername',
+      icon: (
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+        </svg>
+      )
+    },
+    {
+      name: 'Twitter',
+      url: 'https://twitter.com/yourusername',
+      icon: (
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+        </svg>
+      )
+    }
+  ];
+
+  const fadeIn = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5 }
   };
 
   return (
-    <section id="contact" className={`py-20 px-8 bg-gray-900 relative ${showEasterEgg ? 'glitch-bg' : ''}`}>
-      {/* Floating binary in the background when easter egg is active */}
-      {showEasterEgg && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(20)].map((_, i) => (
-            <div 
-              key={i}
-              className="binary-bit"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                opacity: Math.random() * 0.5 + 0.1
-              }}
-            >
-              {Math.random() > 0.5 ? '1' : '0'}
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="max-w-4xl mx-auto">
-        <div className="font-mono mb-12">
-          <div className="flex items-center text-gray-500">
-            <div className="mr-2 text-terminal-green">#</div>
-            <div className="mr-2 text-terminal-green">04.</div>
-            <h2 className="text-xl text-terminal-white font-semibold">Contact</h2>
-            <div className="ml-4 h-px bg-gray-700 flex-grow"></div>
-          </div>
-          <p className="text-gray-400 mt-4 ml-10">
-            Let's build something together
+    <section className="py-20 px-4 md:px-8 bg-gradient-to-b from-black to-gray-900 min-h-screen">
+      <div className="max-w-6xl mx-auto">
+        <motion.div
+          initial="initial"
+          animate="animate"
+          variants={fadeIn}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Let's Connect
+          </h2>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            Have a project in mind or just want to chat? Feel free to reach out. I'm always open to discussing new projects, creative ideas, or opportunities to be part of your visions.
           </p>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Main terminal */}
-          <div className="lg:col-span-3">
-            <div className="terminal-container h-full">
-              <div className="terminal-header">
-                <div className="flex space-x-2 mr-4">
-                  <div className="w-3 h-3 rounded-full bg-terminal-red"></div>
-                  <div className="w-3 h-3 rounded-full bg-terminal-yellow"></div>
-                  <div className="w-3 h-3 rounded-full bg-terminal-green"></div>
-                </div>
-                <div className="text-terminal-brightBlack font-mono text-sm flex items-center">
-                  <Terminal size={14} className="mr-2" />
-                  visitor@punit-portfolio:~
-                </div>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          {/* Contact Form */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="bg-gray-800/50 p-8 rounded-2xl backdrop-blur-sm"
+          >
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                  Your Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
+                  placeholder="John Doe"
+                />
               </div>
-              <div 
-                ref={terminalRef}
-                className={`bg-black p-4 font-mono text-sm h-96 overflow-auto relative ${showEasterEgg ? 'matrix-mode' : ''}`}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
+                  placeholder="john@example.com"
+                />
+              </div>
+              <div>
+                <label htmlFor="subject" className="block text-sm font-medium text-gray-300 mb-2">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  id="subject"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
+                  placeholder="Project Discussion"
+                />
+              </div>
+              <div>
+                <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
+                  Message
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  rows={6}
+                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400 resize-none"
+                  placeholder="Your message here..."
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`w-full py-4 px-6 rounded-lg text-white font-medium transition-all duration-300
+                  ${isSubmitting
+                    ? 'bg-gray-600 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 transform hover:-translate-y-1'
+                  }`}
               >
-                {/* Matrix-inspired background animation */}
-                <div className={`absolute inset-0 overflow-hidden z-0 ${showEasterEgg ? 'opacity-40' : 'opacity-20'}`}>
-                  <div className="matrix-rain"></div>
-                </div>
-                
-                {/* Terminal content */}
-                <div className="relative z-10">
-                  <div className="text-terminal-green mb-4">Welcome to Punit's terminal. Type or use the form to get in touch.</div>
-                  
-                  {/* Command output */}
-                  <div className="text-terminal-white whitespace-pre-line">{commandOutput}</div>
-                  
-                  {/* Current typing animation */}
-                  <div className="flex items-center">
-                    <span className="text-terminal-green mr-2">visitor@punit-portfolio:~$</span>
-                    <span className="text-terminal-white">{typingAnimation}</span>
-                    <span className={`ml-0.5 inline-block w-2 h-4 bg-terminal-white ${cursor ? 'opacity-100' : 'opacity-0'}`}></span>
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Sending...
+                  </span>
+                ) : 'Send Message'}
+              </button>
+              {submitStatus === 'success' && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-green-400 text-center mt-4"
+                >
+                  Message sent successfully!
+                </motion.p>
+              )}
+              {submitStatus === 'error' && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-red-400 text-center mt-4"
+                >
+                  Failed to send message. Please try again.
+                </motion.p>
+              )}
+            </form>
+          </motion.div>
+
+          {/* Contact Info */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="space-y-8"
+          >
+            <div className="bg-gray-800/50 p-8 rounded-2xl backdrop-blur-sm">
+              <h3 className="text-2xl font-bold text-white mb-4">Contact Information</h3>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-4">
+                  <svg className="w-6 h-6 text-blue-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <div>
+                    <p className="text-gray-300 font-medium">Email</p>
+                    <a href="mailto:your.email@example.com" className="text-blue-400 hover:text-blue-300 transition-colors">
+                      your.email@example.com
+                    </a>
                   </div>
                 </div>
-                
-                {/* Simulated active processes */}
-                <div className="mt-8 border-t border-gray-800 pt-4">
-                  <div className="text-xs text-gray-500 mb-2">Active Processes:</div>
-                  <div className="grid grid-cols-1 gap-1">
-                    <div className="flex items-center justify-between bg-gray-900/50 px-2 py-1 rounded text-xs">
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                        <span className="text-gray-400">contact_service.js</span>
-                      </div>
-                      <span className="text-gray-500">PID: 1337</span>
-                    </div>
-                    <div className="flex items-center justify-between bg-gray-900/50 px-2 py-1 rounded text-xs">
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
-                        <span className="text-gray-400">mail_sender.js</span>
-                      </div>
-                      <span className="text-gray-500">PID: 4242</span>
-                    </div>
-                    <div className="flex items-center justify-between bg-gray-900/50 px-2 py-1 rounded text-xs">
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2 animate-pulse"></div>
-                        <span className="text-gray-400">notification_handler.js</span>
-                      </div>
-                      <span className="text-gray-500">PID: 8080</span>
-                    </div>
+                <div className="flex items-start space-x-4">
+                  <svg className="w-6 h-6 text-blue-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-gray-300 font-medium">Location</p>
+                    <p className="text-gray-400">Mumbai, India</p>
                   </div>
-                </div>
-                
-                {/* System resources */}
-                <div className="mt-4">
-                  <div className="text-xs text-gray-500 mb-2">System Resources:</div>
-                  <div className="space-y-2">
-                    <div>
-                      <div className="flex justify-between text-xs text-gray-400 mb-1">
-                        <span>CPU</span>
-                        <span>32%</span>
-                      </div>
-                      <div className="w-full bg-gray-800 rounded-full h-1">
-                        <div className="bg-terminal-blue h-1 rounded-full" style={{ width: '32%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs text-gray-400 mb-1">
-                        <span>Memory</span>
-                        <span>547MB / 2GB</span>
-                      </div>
-                      <div className="w-full bg-gray-800 rounded-full h-1">
-                        <div className="bg-terminal-green h-1 rounded-full" style={{ width: '27%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs text-gray-400 mb-1">
-                        <span>Network</span>
-                        <span>1.2 MB/s</span>
-                      </div>
-                      <div className="w-full bg-gray-800 rounded-full h-1">
-                        <div className="bg-terminal-purple h-1 rounded-full" style={{ width: '45%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Custom command input */}
-                <div className="mt-4 flex items-center bg-gray-900/70 backdrop-blur-sm rounded p-2 border border-gray-800">
-                  <Command size={14} className="text-terminal-green mr-2" />
-                  <input
-                    type="text"
-                    placeholder="Type a command (try 'help', 'contact', or 'projects')"
-                    className="bg-transparent border-none outline-none text-terminal-white w-full font-mono text-sm"
-                    onKeyDown={runCustomCommand}
-                  />
                 </div>
               </div>
             </div>
-          </div>
-          
-          {/* Contact form */}
-          <div className="lg:col-span-2">
-            <div className="terminal-container">
-              <div className="terminal-header">
-                <div className="flex space-x-2 mr-4">
-                  <div className="w-3 h-3 rounded-full bg-terminal-red"></div>
-                  <div className="w-3 h-3 rounded-full bg-terminal-yellow"></div>
-                  <div className="w-3 h-3 rounded-full bg-terminal-green"></div>
-                </div>
-                <div className="text-terminal-brightBlack font-mono text-sm">
-                  contact-form.js
-                </div>
-              </div>
-              <div className="bg-gray-900 p-5">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label htmlFor="name" className="block text-terminal-brightBlue text-sm font-mono mb-1">
-                      const name = 
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="'Your Name'"
-                      className="w-full bg-gray-800 border border-gray-700 text-terminal-white p-2 rounded font-mono text-sm focus:border-terminal-green focus:outline-none"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="email" className="block text-terminal-brightBlue text-sm font-mono mb-1">
-                      const email = 
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="'your.email@example.com'"
-                      className="w-full bg-gray-800 border border-gray-700 text-terminal-white p-2 rounded font-mono text-sm focus:border-terminal-green focus:outline-none"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="message" className="block text-terminal-brightBlue text-sm font-mono mb-1">
-                      const message = 
-                    </label>
-                    <textarea
-                      id="message"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="'Your message here...'"
-                      rows="4"
-                      className="w-full bg-gray-800 border border-gray-700 text-terminal-white p-2 rounded font-mono text-sm focus:border-terminal-green focus:outline-none"
-                    ></textarea>
-                  </div>
-                  
-                  <button
-                    type="submit"
-                    className={`${showEasterEgg ? 'bg-terminal-green/30 animate-pulse' : 'bg-terminal-green/10'} border border-terminal-green/50 text-terminal-green px-4 py-2 rounded flex items-center justify-center w-full font-mono hover:bg-terminal-green/20 transition-colors duration-300 relative overflow-hidden`}
-                    disabled={submitStatus === 'loading'}
+
+            <div className="bg-gray-800/50 p-8 rounded-2xl backdrop-blur-sm">
+              <h3 className="text-2xl font-bold text-white mb-4">Connect With Me</h3>
+              <div className="flex space-x-4">
+                {socialLinks.map((social, index) => (
+                  <motion.a
+                    key={social.name}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-white transition-colors p-3 bg-gray-700/50 rounded-lg hover:bg-gray-700"
+                    whileHover={{ y: -3 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
                   >
-                    {showEasterEgg && (
-                      <div className="absolute inset-0 cyber-grid opacity-20"></div>
-                    )}
-                
-                    {submitStatus === 'loading' ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-terminal-green mr-2"></div>
-                        Processing...
-                      </div>
-                    ) : submitStatus === 'success' ? (
-                      <div className="flex items-center">
-                        <CheckCircle size={16} className="mr-2" />
-                        Message Sent!
-                      </div>
-                    ) : submitStatus === 'error' ? (
-                      <div className="flex items-center">
-                        <AlertCircle size={16} className="mr-2" />
-                        Error. Try Again.
-                      </div>
-                    ) : (
-                      <div className="flex items-center">
-                        <Send size={16} className="mr-2" />
-                        submit()
-                      </div>
-                    )}
-                  </button>
-                </form>
-                
-                {/* Quick contact info */}
-                <div className="mt-6 pt-6 border-t border-gray-700">
-                  <h3 className="text-terminal-white font-mono text-sm mb-3">// Quick connect</h3>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center">
-                      <Mail size={16} className="text-terminal-blue mr-3" />
-                      <span className="text-gray-300 text-sm font-mono truncate">punitkumar182@gmail.com</span>
-                      <button 
-                        onClick={handleCopyEmail}
-                        className="ml-2 text-gray-500 hover:text-terminal-white transition-colors"
-                        aria-label="Copy email address"
-                      >
-                        {copied ? <CheckCircle size={14} className="text-terminal-green" /> : <Copy size={14} />}
-                      </button>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <Linkedin size={16} className="text-terminal-blue mr-3" />
-                      <a 
-                        href="https://linkedin.com/in/punitkumar182" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-gray-300 text-sm font-mono hover:text-terminal-green transition-colors"
-                      >
-                        linkedin.com/in/punitkumar182
-                      </a>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <Github size={16} className="text-terminal-blue mr-3" />
-                      <a 
-                        href="https://github.com/punitkr" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-gray-300 text-sm font-mono hover:text-terminal-green transition-colors"
-                      >
-                        github.com/punitkr
-                      </a>
-                    </div>
-                  </div>
-                </div>
+                    {social.icon}
+                  </motion.a>
+                ))}
               </div>
             </div>
-          </div>
-        </div>
-        
-        {/* Interactive connection visualization */}
-        <div className="mt-12 py-6 relative">
-          {/* Network visualization */}
-          <div className="network-visualization">
-            <div className="network-node main-node"></div>
-            <div className="network-node node-1"></div>
-            <div className="network-node node-2"></div>
-            <div className="network-node node-3"></div>
-            <div className="network-node node-4"></div>
-            <div className="network-node node-5"></div>
-            <div className="network-connection connection-1"></div>
-            <div className="network-connection connection-2"></div>
-            <div className="network-connection connection-3"></div>
-            <div className="network-connection connection-4"></div>
-            <div className="network-connection connection-5"></div>
-            <div className="data-packet packet-1"></div>
-            <div className="data-packet packet-2"></div>
-            <div className="data-packet packet-3"></div>
-            <div className="data-packet packet-4"></div>
-            <div className="data-packet packet-5"></div>
-          </div>
-          
-          {/* ASCII art signature overlay */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="font-mono text-xs text-gray-600 whitespace-pre overflow-auto z-10 bg-gradient-to-r from-gray-900/80 via-transparent to-gray-900/80 px-8">
-{`
-  _____                _  _     _  __                                  
- |  __ \\              (_)| |   | |/ /                                  
- | |__) |_   _  _ __   _ | |_  | ' / _   _  _ __ ___    __ _  _ __    
- |  ___/| | | || '_ \\ | || __| |  < | | | || '_ \\ _ \\  / _\` || '__|   
- | |    | |_| || | | || || |_  | . \\| |_| || | | | | || (_| || |      
- |_|     \\__,_||_| |_||_| \\__| |_|\\_\\\\__,_||_| |_| |_| \\__,_||_|  
-                                      Full Stack Developer
-`}
+
+            <div className="bg-gray-800/50 p-8 rounded-2xl backdrop-blur-sm">
+              <h3 className="text-2xl font-bold text-white mb-4">Available For</h3>
+              <ul className="space-y-3">
+                {['Freelance Projects', 'Full-time Positions', 'Collaborations', 'Tech Consultations'].map((item, index) => (
+                  <motion.li
+                    key={item}
+                    className="flex items-center text-gray-300"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  >
+                    <svg className="w-5 h-5 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {item}
+                  </motion.li>
+                ))}
+              </ul>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
-      
-      <style jsx>{`
-        @keyframes matrixRain {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100%); }
-        }
-        
-        .matrix-rain {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(180deg, 
-                      rgba(0, 255, 70, 0.2) 0%, 
-                      rgba(0, 255, 70, 0.1) 50%, 
-                      rgba(0, 255, 70, 0) 100%);
-          animation: matrixRain 8s linear infinite;
-        }
-        
-        .matrix-mode {
-          position: relative;
-          color: #0f0 !important;
-          text-shadow: 0 0 5px #0f0;
-        }
-        
-        .matrix-mode::after {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: repeating-linear-gradient(
-            0deg,
-            rgba(0, 0, 0, 0.15),
-            rgba(0, 0, 0, 0.15) 1px,
-            transparent 1px,
-            transparent 2px
-          );
-          pointer-events: none;
-        }
-        
-        .glitch-bg {
-          animation: glitchEffect 0.2s infinite;
-        }
-        
-        @keyframes glitchEffect {
-          0% { background-color: #111827; }
-          1% { background-color: #0a1122; }
-          2% { background-color: #111827; }
-          3% { background-color: #122038; }
-          5% { background-color: #111827; }
-          98% { background-color: #111827; }
-          100% { background-color: #111827; }
-        }
-        
-        .network-visualization {
-          position: relative;
-          width: 100%;
-          height: 120px;
-        }
-        
-        .network-node {
-          position: absolute;
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          background-color: #4ade80;
-          z-index: 2;
-        }
-        
-        .main-node {
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 14px;
-          height: 14px;
-          background-color: #60a5fa;
-          box-shadow: 0 0 10px #60a5fa;
-        }
-        
-        .node-1 { top: 20%; left: 10%; background-color: #4ade80; }
-        .node-2 { top: 70%; left: 20%; background-color: #a78bfa; }
-        .node-3 { top: 30%; left: 80%; background-color: #f87171; }
-        .node-4 { top: 80%; left: 85%; background-color: #fcd34d; }
-        .node-5 { top: 10%; left: 40%; background-color: #22d3ee; }
-        
-        .network-connection {
-          position: absolute;
-          height: 1px;
-          background-color: rgba(75, 85, 99, 0.6);
-          z-index: 1;
-          transform-origin: 0 0;
-        }
-        
-        .connection-1 {
-          top: 50%;
-          left: 50%;
-          width: 40%;
-          transform: rotate(155deg);
-        }
-        
-        .connection-2 {
-          top: 50%;
-          left: 50%;
-          width: 30%;
-          transform: rotate(200deg);
-        }
-        
-        .connection-3 {
-          top: 50%;
-          left: 50%;
-          width: 32%;
-          transform: rotate(30deg);
-        }
-        
-        .connection-4 {
-          top: 50%;
-          left: 50%;
-          width: 38%;
-          transform: rotate(315deg);
-        }
-        
-        .connection-5 {
-          top: 50%;
-          left: 50%;
-          width: 25%;
-          transform: rotate(100deg);
-        }
-        
-        .data-packet {
-          position: absolute;
-          width: 4px;
-          height: 4px;
-          border-radius: 50%;
-          background-color: #4ade80;
-          z-index: 3;
-        }
-        
-        .packet-1 {
-          animation: movePacket1 3s linear infinite;
-          background-color: #4ade80;
-        }
-        
-        .packet-2 {
-          animation: movePacket2 4s linear infinite;
-          background-color: #a78bfa;
-        }
-        
-        .packet-3 {
-          animation: movePacket3 5s linear infinite;
-          background-color: #f87171;
-        }
-        
-        .packet-4 {
-          animation: movePacket4 3.5s linear infinite;
-          background-color: #fcd34d;
-        }
-        
-        .packet-5 {
-          animation: movePacket5 4.5s linear infinite;
-          background-color: #22d3ee;
-        }
-        
-        @keyframes movePacket1 {
-          0% { top: 20%; left: 10%; }
-          50% { top: 50%; left: 50%; }
-          100% { top: 20%; left: 10%; }
-        }
-        
-        @keyframes movePacket2 {
-          0% { top: 70%; left: 20%; }
-          50% { top: 50%; left: 50%; }
-          100% { top: 70%; left: 20%; }
-        }
-        
-        @keyframes movePacket3 {
-          0% { top: 30%; left: 80%; }
-          50% { top: 50%; left: 50%; }
-          100% { top: 30%; left: 80%; }
-        }
-        
-        @keyframes movePacket4 {
-          0% { top: 80%; left: 85%; }
-          50% { top: 50%; left: 50%; }
-          100% { top: 80%; left: 85%; }
-        }
-        
-        @keyframes movePacket5 {
-          0% { top: 10%; left: 40%; }
-          50% { top: 50%; left: 50%; }
-          100% { top: 10%; left: 40%; }
-        }
-        
-        .binary-bit {
-          position: absolute;
-          color: #4ade80;
-          font-family: monospace;
-          font-size: 12px;
-          animation: floatUp 8s linear infinite;
-          user-select: none;
-        }
-        
-        @keyframes floatUp {
-          0% { transform: translateY(0); opacity: 0; }
-          10% { opacity: 0.5; }
-          90% { opacity: 0.5; }
-          100% { transform: translateY(-100px); opacity: 0; }
-        }
-        
-        .cyber-grid {
-          background-image: 
-            linear-gradient(0deg, transparent 24%, rgba(74, 222, 128, .3) 25%, rgba(74, 222, 128, .3) 26%, transparent 27%, transparent 74%, rgba(74, 222, 128, .3) 75%, rgba(74, 222, 128, .3) 76%, transparent 77%, transparent),
-            linear-gradient(90deg, transparent 24%, rgba(74, 222, 128, .3) 25%, rgba(74, 222, 128, .3) 26%, transparent 27%, transparent 74%, rgba(74, 222, 128, .3) 75%, rgba(74, 222, 128, .3) 76%, transparent 77%, transparent);
-          background-size: 30px 30px;
-        }
-      `}</style>
     </section>
   );
 };

@@ -1,33 +1,159 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Terminal, ChevronRight, Sparkles, Code, Download } from 'lucide-react';
+import { Terminal, ChevronRight, Sparkles, Code, Download, Mail, Github, Linkedin, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Hero = () => {
   const [text, setText] = useState('');
   const [cursorVisible, setCursorVisible] = useState(true);
-  const fullText = "I build things for the web.";
   const [commandIndex, setCommandIndex] = useState(0);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [particlesActive, setParticlesActive] = useState(true);
   const terminalRef = useRef(null);
   const [matrixActive, setMatrixActive] = useState(false);
   const canvasRef = useRef(null);
-  const [matrixCharacters, setMatrixCharacters] = useState([]);
+  const particlesRef = useRef(null);
   
   // The commands to type in sequence
   const commands = [
     { text: "cd portfolio", delay: 1000 },
-    { text: "ls", delay: 500 },
-    { text: "cat about.txt", delay: 800 },
+    { text: "echo $SIGNATURE", delay: 500 },
+    { text: "cat introduction.txt", delay: 800 },
   ];
 
-  // Rotating text options for intro
+  // Rotating text options for intro - updated based on resume
   const introTexts = [
-    "I build things for the web.",
-    "I create seamless user experiences.",
-    "I solve problems with code.",
-    "I turn ideas into reality.",
-    "I develop full-stack applications."
+    "< Full Stack Developer />",
+    "{ Problem Solver }",
+    "[ Creative Coder ]",
+    "// Digital Craftsman",
+    "/* Tech Enthusiast */"
   ];
+
+  const socialLinks = [
+    {
+      name: "GitHub",
+      icon: <Github className="w-6 h-6" />,
+      url: "https://github.com/flywithpunitt",
+      color: "hover:text-[#2ea44f]"
+    },
+    {
+      name: "LinkedIn",
+      icon: <Linkedin className="w-6 h-6" />,
+      url: "https://www.linkedin.com/in/flywithpunit/",
+      color: "hover:text-[#0a66c2]"
+    }
+  ];
+
+  // Particle animation with connecting lines
+  useEffect(() => {
+    if (!particlesActive || !particlesRef.current) return;
+
+    const canvas = particlesRef.current;
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const particleCount = 80;
+    const connectionDistance = 150;
+    const mouseRadius = 150;
+    let mouse = { x: null, y: null };
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 1.5 + 0.5;
+        this.speedX = Math.random() * 2 - 1;
+        this.speedY = Math.random() * 2 - 1;
+        this.baseColor = Math.random() > 0.5 ? '#00ff9d' : '#00d8ff';
+      }
+
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        if (this.x > canvas.width) this.x = 0;
+        if (this.x < 0) this.x = canvas.width;
+        if (this.y > canvas.height) this.y = 0;
+        if (this.y < 0) this.y = canvas.height;
+
+        // Mouse interaction
+        if (mouse.x && mouse.y) {
+          const dx = mouse.x - this.x;
+          const dy = mouse.y - this.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < mouseRadius) {
+            const angle = Math.atan2(dy, dx);
+            this.x -= Math.cos(angle) * 2;
+            this.y -= Math.sin(angle) * 2;
+          }
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = this.baseColor;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Create particles
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    function connectParticles() {
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < connectionDistance) {
+            const opacity = 1 - (distance / connectionDistance);
+            ctx.strokeStyle = `rgba(0, 255, 200, ${opacity * 0.3})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+      connectParticles();
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    const handleMouseMove = (e) => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    };
+
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [particlesActive]);
 
   // Typing animation for main intro text
   useEffect(() => {
@@ -136,199 +262,204 @@ const Hero = () => {
     }
   }, [commandIndex, showPrompt]);
 
-  // Matrix effect toggle
-  const toggleMatrix = () => {
-    setMatrixActive(!matrixActive);
-  };
-
   return (
-    <section id="home" className="min-h-screen flex flex-col justify-center px-8 bg-gray-900 relative overflow-hidden">
-      {/* Matrix Rain Canvas */}
-      {matrixActive && (
-        <canvas 
-          ref={canvasRef} 
-          className="absolute inset-0 z-0"
-        />
-      )}
-      
-      {/* Secret click zone to activate Matrix effect */}
-      <div 
-        className="absolute top-4 right-4 h-6 w-6 cursor-pointer z-20 opacity-20 hover:opacity-80 transition-opacity"
-        onClick={toggleMatrix}
-        title="Toggle Matrix Effect"
-      >
-        <Sparkles size={24} className="text-terminal-green" />
-      </div>
-      
-      <div className="max-w-3xl mx-auto w-full relative z-10">
-        {/* Terminal window */}
-        <div className={`bg-gray-800 rounded-lg overflow-hidden shadow-xl border ${matrixActive ? 'border-terminal-green' : 'border-gray-700'} transition-all duration-500`}>
-          {/* Terminal header */}
-          <div className="bg-gray-800 px-4 py-2 flex items-center border-b border-gray-700">
-            <div className="flex space-x-2">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            </div>
-            <div className="mx-auto text-gray-400 text-sm font-mono flex items-center">
-              <Terminal size={14} className="mr-2" />
-              punit@developer: ~/portfolio
-            </div>
-          </div>
-          
-          {/* Terminal content */}
-          <div 
-            ref={terminalRef} 
-            className={`bg-gray-900 p-4 font-mono text-sm md:text-base overflow-auto transition-all duration-500 ${matrixActive ? 'h-96' : 'h-80'}`}
+    <section className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+      {/* Particle effect canvas */}
+      <canvas
+        ref={particlesRef}
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ opacity: 0.6 }}
+      />
+
+      {/* Matrix effect canvas */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ opacity: matrixActive ? 0.1 : 0 }}
+      />
+
+      {/* Main content */}
+      <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16 relative z-10">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
+          {/* Left column - Main content */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="w-full lg:w-1/2 max-w-2xl text-center lg:text-left space-y-6"
           >
-            {/* Command history */}
-            <div className="space-y-2 mb-4">
-              {commands.slice(0, commandIndex).map((command, index) => (
-                <div key={index} className="text-gray-200">
-                  <span className="text-green-400">➜</span> <span className="text-blue-400">~/portfolio</span> <span className="text-white">{command.text}</span>
-                  
-                  {/* Command outputs */}
-                  {index === 0 && (
-                    <div className="text-gray-400 mt-1 ml-2">
-                      Navigated to portfolio directory
-                    </div>
-                  )}
-                  
-                  {index === 1 && (
-                    <div className="text-gray-400 mt-1">
-                      <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                        <span className="text-blue-400">about.txt</span>
-                        <span className="text-purple-400">projects/</span>
-                        <span className="text-yellow-400">skills.json</span>
-                        <span className="text-green-400">contact.sh</span>
-                        <span className="text-red-400">resume.pdf</span>
-                        <span className="text-cyan-400">config.yml</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
+            <div className="space-y-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="inline-block px-6 py-2 rounded-full bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-sm border border-gray-700"
+              >
+                <span className="text-sm md:text-base text-gray-300">Welcome to my portfolio</span>
+              </motion.div>
+              
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-5xl md:text-6xl xl:text-7xl font-bold"
+              >
+                <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+                  Punit Kumar
+                </span>
+              </motion.h1>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-2xl md:text-3xl xl:text-4xl font-semibold text-gray-200 h-[40px] flex items-center justify-center lg:justify-start"
+              >
+                <span>{text}</span>
+                <span className={`inline-block w-[3px] h-[30px] bg-blue-500 ml-1 ${cursorVisible ? 'opacity-100' : 'opacity-0'}`}></span>
+              </motion.div>
+              
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="text-lg md:text-xl text-gray-400 max-w-xl mx-auto lg:mx-0"
+              >
+                Passionate about building scalable and efficient web applications. Specializing in modern JavaScript frameworks with a strong foundation in both frontend and backend development.
+              </motion.p>
+            </div>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="flex flex-wrap items-center justify-center lg:justify-start gap-4"
+            >
+              <a
+                href="#contact"
+                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full font-medium flex items-center gap-2 hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-105 shadow-lg hover:shadow-blue-500/25"
+              >
+                <Mail className="w-5 h-5" />
+                Get in Touch
+              </a>
+              <a
+                href="/resume.pdf"
+                className="px-8 py-3 bg-gray-800/80 backdrop-blur-sm text-white rounded-full font-medium flex items-center gap-2 hover:bg-gray-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-gray-500/25 border border-gray-700"
+              >
+                <Download className="w-5 h-5" />
+                Resume
+              </a>
+            </motion.div>
+
+            {/* Social Links */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="flex items-center justify-center lg:justify-start gap-6"
+            >
+              {socialLinks.map((link, index) => (
+                <motion.a
+                  key={link.name}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`text-gray-400 hover:text-white transition-all transform hover:scale-110 ${link.color}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
+                  whileHover={{ y: -2 }}
+                >
+                  {link.icon}
+                  <span className="sr-only">{link.name}</span>
+                </motion.a>
               ))}
-            </div>
-            
-            {/* About output */}
-            {commandIndex >= 3 && (
-              <div className="text-gray-300 space-y-3 animate-fadeIn">
-                {showPrompt && (
-                  <div className="relative">
-                    <div className="absolute -left-5 top-0 bottom-0 w-1 bg-terminal-green"></div>
-                    <p className="text-green-400 text-xl md:text-2xl font-bold">
-                      Hi, I'm Punit Kumar
-                    </p>
-                    <p className="text-xl md:text-2xl text-gray-100 mt-2 min-h-[2rem]">
-                      {text}<span className={cursorVisible ? 'opacity-100' : 'opacity-0'}>_</span>
-                    </p>
-                    <p className="text-gray-400 mt-4 leading-relaxed">
-                      I'm a full-stack developer specializing in building exceptional digital experiences.
-                      Currently focused on creating accessible, human-centered products using React, TypeScript,
-                      Python and MongoDB.
-                    </p>
-                    
-                    <div className="pt-6 flex flex-wrap gap-4">
-                      <button 
-                        onClick={() => window.location.href = '#projects'}
-                        className="bg-transparent border border-terminal-green text-terminal-green px-4 py-2 rounded hover:bg-terminal-green/10 transition-all duration-300 flex items-center group"
-                      >
-                        <Code size={16} className="mr-2" />
-                        View My Work
-                        <ChevronRight size={16} className="ml-1 transform group-hover:translate-x-1 transition-transform" />
-                      </button>
-                      
-                      <a 
-                        href="/resume.pdf" 
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-transparent border border-terminal-brightBlue text-terminal-brightBlue px-4 py-2 rounded hover:bg-terminal-brightBlue/10 transition-all duration-300 flex items-center"
-                      >
-                        <Download size={16} className="mr-2" />
-                        Download Resume
-                      </a>
+            </motion.div>
+          </motion.div>
+
+          {/* Right column - Terminal */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="w-full lg:w-1/2 max-w-2xl"
+          >
+            <div className="bg-gray-900/80 backdrop-blur-lg rounded-xl border border-gray-800 overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-transform duration-300">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800 bg-gray-800/50">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div className="flex-1 text-center">
+                  <span className="text-sm text-gray-400 font-mono">punit@dev ~ $</span>
+                </div>
+              </div>
+              <div
+                ref={terminalRef}
+                className="p-6 font-mono text-sm md:text-base text-gray-300 space-y-4 h-[300px] md:h-[350px] overflow-y-auto custom-scrollbar"
+              >
+                {commands.map((cmd, index) => (
+                  <div key={index} className={`transition-all duration-300 ${index <= commandIndex ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                    <div className="flex items-center gap-2 text-green-400">
+                      <ChevronRight className="w-4 h-4" />
+                      <span>{cmd.text}</span>
                     </div>
+                    {index === 2 && showPrompt && (
+                      <div className="mt-4 text-blue-400 leading-relaxed">
+                        Hi! I'm Punit Kumar, a Full Stack Developer passionate about crafting innovative digital solutions. Let's build something amazing together!
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            )}
-            
-            {/* Cool typing animation at the bottom */}
-            <div className={`mt-8 border-t border-gray-800 pt-4 ${showPrompt ? 'block' : 'hidden'}`}>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <div className="animate-pulse">
-                  <span className="text-terminal-green">system</span>:<span className="text-terminal-brightBlue">~$</span>
-                </div>
-                <div className="typewriter">
-                  <span>Ready for the next command...</span>
-                </div>
+                ))}
               </div>
             </div>
-          </div>
-        </div>
-        
-        {/* Quick status */}
-        <div className="mt-8 flex flex-col md:flex-row justify-between text-sm text-gray-500 font-mono">
-          <div>
-            <span className="inline-block w-3 h-3 rounded-full bg-green-500 mr-2"></span>
-            Currently available for new opportunities
-          </div>
-          <div className="mt-3 md:mt-0">
-            <span className="text-gray-400">Last login:</span> {new Date().toLocaleDateString()} @ {new Date().toLocaleTimeString()}
-          </div>
-        </div>
-        
-        {/* Floating tech badges */}
-        <div className="hidden md:block">
-          <div className="absolute top-1/4 -right-4 transform rotate-12 bg-gray-800/80 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs border border-gray-700 text-terminal-green font-mono">
-            React.js
-          </div>
-          <div className="absolute bottom-1/4 -left-8 transform -rotate-12 bg-gray-800/80 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs border border-gray-700 text-terminal-purple font-mono">
-            Python
-          </div>
-          <div className="absolute top-1/3 -left-6 transform rotate-3 bg-gray-800/80 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs border border-gray-700 text-terminal-yellow font-mono">
-            TypeScript
-          </div>
-          <div className="absolute bottom-1/3 -right-12 transform -rotate-6 bg-gray-800/80 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs border border-gray-700 text-terminal-blue font-mono">
-            MongoDB
-          </div>
+
+            {/* Decorative elements */}
+            <div className="absolute -top-4 -right-4 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-4 -left-4 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl"></div>
+          </motion.div>
         </div>
       </div>
-      
-      {/* Decorative dots */}
-      <div className="absolute bottom-12 left-12 hidden md:block">
-        <div className="grid grid-cols-3 gap-2">
-          {[...Array(9)].map((_, i) => (
-            <div key={i} className="w-2 h-2 rounded-full bg-gray-700"></div>
-          ))}
+
+      {/* Scroll indicator */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2 }}
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2"
+      >
+        <span className="text-gray-400 text-sm">Scroll to explore</span>
+        <div className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center">
+          <motion.div
+            animate={{
+              y: [0, 12, 0],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              repeatType: "loop",
+            }}
+            className="w-2 h-2 bg-gray-400 rounded-full mt-2"
+          />
         </div>
-      </div>
-      
-      {/* Decorative corner brackets */}
-      <div className="absolute top-12 left-12 text-3xl text-gray-800 hidden md:block">&#91;&#91;</div>
-      <div className="absolute top-12 right-12 text-3xl text-gray-800 hidden md:block">&#93;&#93;</div>
-      <div className="absolute bottom-12 right-12 text-3xl text-gray-800 hidden md:block">&#125;&#125;</div>
-      
+      </motion.div>
+
       <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
         }
-        
-        .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out forwards;
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(31, 41, 55, 0.5);
+          border-radius: 3px;
         }
-        
-        .typewriter span {
-          overflow: hidden;
-          display: inline-block;
-          white-space: nowrap;
-          animation: typing 3s steps(40, end) infinite;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(75, 85, 99, 0.5);
+          border-radius: 3px;
         }
-        
-        @keyframes typing {
-          from { width: 0 }
-          to { width: 100% }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(75, 85, 99, 0.7);
         }
       `}</style>
     </section>

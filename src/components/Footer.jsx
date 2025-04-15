@@ -1,309 +1,206 @@
-import React, { useState, useEffect } from 'react';
-import { Github, Linkedin, Mail, Heart, Code, Terminal, Cpu, ExternalLink, Coffee } from 'lucide-react';
+'use client';
+
+import { motion } from 'framer-motion';
 
 const Footer = () => {
-  const [glitchText, setGlitchText] = useState(false);
-  const [matrixActive, setMatrixActive] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
-  const [showConsoleMessage, setShowConsoleMessage] = useState(false);
-  
-  // Update time every second
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date().toLocaleTimeString());
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  // Occasional text glitch effect
-  useEffect(() => {
-    const glitchInterval = setInterval(() => {
-      setGlitchText(true);
-      setTimeout(() => {
-        setGlitchText(false);
-      }, 150);
-    }, 10000);
-    
-    return () => clearInterval(glitchInterval);
-  }, []);
-  
-  // Show console message when footer is first rendered
-  useEffect(() => {
-    console.log("%c👋 Welcome to my portfolio!", "color: #4ade80; font-size: 1.5rem; font-weight: bold;");
-    console.log("%c✨ Thanks for checking out the console! Feel free to explore my code.", "color: #60a5fa; font-size: 1rem;");
-    console.log("%c🔍 Looking for hidden features? Try the Konami code on the contact page...", "color: #f472b6; font-size: 0.9rem;");
-    
-    setShowConsoleMessage(true);
-  }, []);
-  
-  const toggleMatrix = () => {
-    setMatrixActive(!matrixActive);
+  const currentYear = new Date().getFullYear();
+
+  const footerLinks = {
+    services: [
+      { name: 'Web Development', href: '#' },
+      { name: 'App Development', href: '#' },
+      { name: 'UI/UX Design', href: '#' },
+      { name: 'Consulting', href: '#' }
+    ],
+    resources: [
+      { name: 'Blog', href: '#' },
+      { name: 'Newsletter', href: '#' },
+      { name: 'Events', href: '#' },
+      { name: 'Help Center', href: '#' }
+    ],
+    social: [
+      {
+        name: 'GitHub',
+        href: 'https://github.com/yourusername',
+        icon: (
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+        )
+      },
+      {
+        name: 'Twitter',
+        href: 'https://twitter.com/yourusername',
+        icon: (
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+          </svg>
+        )
+      },
+      {
+        name: 'LinkedIn',
+        href: 'https://linkedin.com/in/yourusername',
+        icon: (
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+          </svg>
+        )
+      },
+      {
+        name: 'Instagram',
+        href: 'https://instagram.com/yourusername',
+        icon: (
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z" />
+          </svg>
+        )
+      }
+    ]
   };
 
   return (
-    <footer className="py-8 px-8 bg-gray-900 border-t border-gray-800 relative overflow-hidden">
-      {/* Matrix background when activated */}
-      {matrixActive && (
-        <div className="absolute inset-0 matrix-background opacity-20 pointer-events-none"></div>
-      )}
+    <footer className="bg-gradient-to-t from-black to-gray-900 pt-16 pb-8 relative overflow-hidden">
+      {/* Animated background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 animate-gradient-x"></div>
       
-      <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-6 md:mb-0 font-mono text-sm text-gray-500 relative">
-            <div className={`${glitchText ? 'glitch-text' : ''}`}>
-              <div className="flex items-center">
-                <Terminal size={14} className="mr-2 text-terminal-green" />
-                <span className="text-terminal-white">
-                  <span className="text-terminal-green">$</span> echo <span className="text-terminal-yellow">"Built with passion"</span>
-                </span>
-              </div>
-              <div className="mt-1 flex items-center">
-                <span className="text-gray-600">© {new Date().getFullYear()} Punit Kumar • Made with</span>
-                <Heart size={12} className="mx-1 text-terminal-red hover-pulse" />
-                <span>and</span>
-                <Coffee size={12} className="mx-1 text-terminal-yellow hover-pulse" />
-              </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+          {/* Brand Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h3 className="text-2xl font-bold text-white mb-4">Punit Kumar</h3>
+            <p className="text-gray-400 mb-6">
+              Building digital experiences that make a difference. Let's create something amazing together.
+            </p>
+            <div className="flex space-x-4">
+              {footerLinks.social.map((item) => (
+                <motion.a
+                  key={item.name}
+                  href={item.href}
+                  className="text-gray-400 hover:text-white transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ y: -3 }}
+                >
+                  {item.icon}
+                </motion.a>
+              ))}
             </div>
-            
-            {/* Console message indicator */}
-            {showConsoleMessage && (
-              <div className="hidden md:block absolute -top-4 -left-4 text-xs text-terminal-brightBlue animate-pulse">
-                <div className="flex items-center">
-                  <Code size={12} className="mr-1" />
-                  <span>Check the console!</span>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <div className="flex space-x-4">
-            <a 
-              href="https://github.com/punitkr" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="social-icon-container"
-              aria-label="GitHub Profile"
-            >
-              <div className="shine-effect"></div>
-              <Github size={18} className="social-icon" />
-            </a>
-            <a 
-              href="https://linkedin.com/in/punitkumar182" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="social-icon-container"
-              aria-label="LinkedIn Profile"
-            >
-              <div className="shine-effect"></div>
-              <Linkedin size={18} className="social-icon" />
-            </a>
-            <a 
-              href="mailto:punitkumar9168@gmail.com" 
-              className="social-icon-container"
-              aria-label="Email"
-            >
-              <div className="shine-effect"></div>
-              <Mail size={18} className="social-icon" />
-            </a>
-            <button 
-              onClick={toggleMatrix}
-              className="social-icon-container"
-              aria-label="Toggle Matrix Effect"
-            >
-              <div className="shine-effect"></div>
-              <Cpu size={18} className={`social-icon ${matrixActive ? 'text-terminal-green animate-pulse' : ''}`} />
-            </button>
-          </div>
+          </motion.div>
+
+          {/* Services */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <h3 className="text-lg font-semibold text-white mb-4">Services</h3>
+            <ul className="space-y-3">
+              {footerLinks.services.map((item) => (
+                <li key={item.name}>
+                  <a
+                    href={item.href}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    {item.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          {/* Resources */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <h3 className="text-lg font-semibold text-white mb-4">Resources</h3>
+            <ul className="space-y-3">
+              {footerLinks.resources.map((item) => (
+                <li key={item.name}>
+                  <a
+                    href={item.href}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    {item.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          {/* Newsletter */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <h3 className="text-lg font-semibold text-white mb-4">Stay Updated</h3>
+            <p className="text-gray-400 mb-4">
+              Subscribe to my newsletter for the latest updates and insights.
+            </p>
+            <form className="space-y-2" onSubmit={(e) => e.preventDefault()}>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
+              />
+              <button
+                type="submit"
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Subscribe
+              </button>
+            </form>
+          </motion.div>
         </div>
-        
-        <div className="mt-6 flex flex-col md:flex-row justify-between items-center">
-          <div className="font-mono text-xs text-gray-600 mb-3 md:mb-0">
-            <span className="text-terminal-green">$</span> Thank you for visiting my portfolio!
-          </div>
-          
-          {/* System status indicators */}
-          <div className="flex items-center gap-3 text-xs text-gray-600 font-mono">
-            <div className="flex items-center">
-              <span className="inline-block w-2 h-2 rounded-full bg-terminal-green animate-pulse mr-1"></span>
-              <span>SYSTEM ONLINE</span>
+
+        {/* Bottom Bar */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="border-t border-gray-800 pt-8"
+        >
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-gray-400 text-sm">
+              © {currentYear} Punit Kumar. All rights reserved.
+            </p>
+            <div className="flex space-x-6 mt-4 md:mt-0">
+              <a href="#" className="text-gray-400 hover:text-white text-sm">
+                Privacy Policy
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white text-sm">
+                Terms of Service
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white text-sm">
+                Cookie Policy
+              </a>
             </div>
-            <div>|</div>
-            <div className="terminal-time">{currentTime}</div>
           </div>
-        </div>
-        
-        {/* Bottom decorative elements */}
-        <div className="grid grid-cols-9 gap-1 mt-6">
-          {[...Array(9)].map((_, i) => (
-            <div 
-              key={i} 
-              className={`h-0.5 bg-gray-800 rounded ${i === 4 ? 'bg-terminal-green animate-pulse' : ''}`}
-            ></div>
-          ))}
-        </div>
-        
-        {/* Binary footer */}
-        <div className="mt-4 text-center">
-          <div className="inline-block px-2 py-1 bg-gray-800 rounded-md">
-            <div className="text-xs font-mono text-gray-600 binary-text overflow-hidden">
-              01010000 01110101 01101110 01101001 01110100
-            </div>
-          </div>
-        </div>
+        </motion.div>
       </div>
-      
+
+      {/* Add the gradient animation styles */}
       <style jsx>{`
-        .glitch-text {
-          position: relative;
+        @keyframes gradient-x {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
         }
-        
-        .glitch-text::before, .glitch-text::after {
-          content: "$ echo \"Built with passion\"";
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          opacity: 0;
-        }
-        
-        .glitch-text.glitch::before {
-          color: #ff00ff;
-          opacity: 0.5;
-          transform: translateX(-2px);
-          animation: glitch-anim 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-        
-        .glitch-text.glitch::after {
-          color: #00ffff;
-          opacity: 0.5;
-          transform: translateX(2px);
-          animation: glitch-anim 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) reverse;
-        }
-        
-        @keyframes glitch-anim {
-          0% { opacity: 0.5; transform: translateX(0); }
-          20% { opacity: 0.5; transform: translateX(2px); }
-          40% { opacity: 0.5; transform: translateX(-2px); }
-          60% { opacity: 0.5; transform: translateX(1px); }
-          80% { opacity: 0.5; transform: translateX(-1px); }
-          100% { opacity: 0; transform: translateX(0); }
-        }
-        
-        .matrix-background {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(0deg, 
-            rgba(0, 0, 0, 0) 0%, 
-            rgba(0, 100, 0, 0.05) 25%, 
-            rgba(0, 150, 0, 0.1) 50%, 
-            rgba(0, 100, 0, 0.05) 75%,
-            rgba(0, 0, 0, 0) 100%);
-          animation: matrix-scan 2s linear infinite;
-        }
-        
-        @keyframes matrix-scan {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100%); }
-        }
-        
-        .social-icon-container {
-          position: relative;
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background-color: rgba(75, 85, 99, 0.3);
-          overflow: hidden;
-          transition: all 0.3s ease;
-        }
-        
-        .social-icon-container:hover {
-          background-color: rgba(75, 85, 99, 0.5);
-          transform: translateY(-2px);
-          box-shadow: 0 0 10px rgba(78, 222, 128, 0.5);
-        }
-        
-        .social-icon {
-          color: #6b7280;
-          transition: color 0.3s ease;
-          z-index: 2;
-        }
-        
-        .social-icon-container:hover .social-icon {
-          color: #4ade80;
-        }
-        
-        .shine-effect {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.2),
-            transparent
-          );
-          transition: 0.5s;
-          z-index: 1;
-        }
-        
-        .social-icon-container:hover .shine-effect {
-          left: 100%;
-          transition: 0.5s;
-        }
-        
-        .hover-pulse:hover {
-          animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.2); }
-          100% { transform: scale(1); }
-        }
-        
-        .terminal-time {
-          font-family: monospace;
-          position: relative;
-        }
-        
-        .terminal-time::before {
-          content: "";
-          position: absolute;
-          left: -10px;
-          top: 50%;
-          width: 6px;
-          height: 6px;
-          background-color: #4ade80;
-          border-radius: 50%;
-          transform: translateY(-50%);
-          animation: blink 1s infinite;
-        }
-        
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-        
-        .binary-text {
-          position: relative;
-          letter-spacing: 1px;
-          mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
-          animation: scroll-binary 20s linear infinite;
-        }
-        
-        @keyframes scroll-binary {
-          0% { transform: translateX(50%); }
-          100% { transform: translateX(-50%); }
+        .animate-gradient-x {
+          animation: gradient-x 15s ease infinite;
+          background-size: 400% 400%;
         }
       `}</style>
     </footer>
